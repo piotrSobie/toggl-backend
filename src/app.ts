@@ -1,9 +1,10 @@
 import * as bodyParser from 'body-parser';
-import * as cookieParser from 'cookie-parser';
 import * as express from 'express';
 import * as mongoose from 'mongoose';
 import Controller from './interfaces/controller.interface';
 import errorMiddleware from './middleware/error.middleware'
+
+import * as cors from 'cors';
 
 class App {
     public app: express.Application;
@@ -24,7 +25,7 @@ class App {
     }
 
     private static connectToTheDatabase() {
-        const { MONGODB_URL } = process.env;
+        const MONGODB_URL = process.env.MONGODB_URL;
         mongoose.connect(MONGODB_URL, {
             useNewUrlParser: true,
             useCreateIndex: true,
@@ -34,7 +35,7 @@ class App {
 
     private initializeMiddleware() {
         this.app.use(bodyParser.json());
-        this.app.use(cookieParser());
+        this.app.use(cors());
     }
 
     private initializeControllers(controllers) {

@@ -1,31 +1,71 @@
 import * as express from 'express';
 import * as jwt from 'jsonwebtoken';
-import DataStoredInToken from "../interfaces/DataStoredInToken";
+import * as jwt_decode from 'jwt-decode';
 import User from '../users/user.model';
-import RequestWithUser from '../interfaces/requestWithUser.interface';
+import DataStoredInToken from "../interfaces/DataStoredInToken";
+import RequestWithUser from '../interfaces/RequestWithUser.interface';
 import WrongAuthenticationTokenException from "../exceptions/WrongAuthenticationTokenException";
+import InternalServerException from "../exceptions/InternalServerException";
 
 
 async function authMiddleware(request: RequestWithUser, response: express.Response, next: express.NextFunction) {
-    const cookies = request.cookies;
-    if (cookies && cookies.Authorization) {
-        const secret = process.env.JWT_SECRET;
-        try {
-            const verificationResponse = jwt.verify(cookies.Authorization, secret) as DataStoredInToken;
-            const id = verificationResponse._id;
-            const user = await User.findById(id);
-            if (user) {
-                request.user = user;
-                next();
-            } else {
-                next(new WrongAuthenticationTokenException());
-            }
-        } catch (e) {
+    const authToken = request.header('Authorization').replace('Bearer ', '');
+    const decodedToken = jwt_decode(authToken);
+
+    if (new Date().getTime() < decodedToken.exp*1000) {
+        //auth token is not expired
+        const user = await User.findOne({ _id: decodedToken._id, 'tokens.token': authToken });
+        if (!user) {
             next(new WrongAuthenticationTokenException());
+        } else {
+            request.token = authToken;
+            request.user = user;
+            next();
         }
     } else {
-        next(new WrongAuthenticationTokenException());
+        //auth token is expired
+        const user = await User.findOne({ _id: decodedToken._id});
+        if (!user) {
+            next(new WrongAuthenticationTokenException());
+        }
+        const decodedRefreshToken = jwt_decode(user.refreshToken);
+
+        if (new Date().getTime() < decodedRefreshToken.exp*1000) {
+            //refresh token is not expired
+            try {
+                user.tokens = user.tokens.filter((token) => {
+                    return token.token !== authToken;
+                });
+                await user.save();
+            } catch (e) {
+                next(new InternalServerException());
+            }
+            const newAuthToken = await user.generateAuthToken();
+            request.newAuthToken = newAuthToken;
+            request.user = user;
+            next();
+        } else {
+            //refresh token is expired
+            next(new WrongAuthenticationTokenException());
+        }
     }
+
+
+    // try {
+    //     const token = request.header('Authorization').replace('Bearer ', '');
+    //     const verificationResponse = jwt.verify(token, process.env.JWT_SECRET) as DataStoredInToken;
+    //     const user = await User.findOne({ _id: verificationResponse._id, 'tokens.token': token });
+    //
+    //     if (!user) {
+    //         next(new WrongAuthenticationTokenException());
+    //     } else {
+    //         request.token = token;
+    //         request.user = user;
+    //         next();
+    //     }
+    // } catch (e) {
+    //     next(new WrongAuthenticationTokenException());
+    // }
 }
 
 export default authMiddleware;

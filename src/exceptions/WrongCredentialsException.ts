@@ -2,7 +2,7 @@ import HttpException from "./HttpException";
 
 class WrongCredentialsException extends HttpException {
     constructor() {
-        super(404, 'Wrong credentials');
+        super(401, 'Wrong credentials');
     }
 }
 

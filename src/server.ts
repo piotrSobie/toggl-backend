@@ -1,14 +1,17 @@
-import 'dotenv/config';
+import validateEnv from "./utils/validateEnv";
 import App from './app';
 import AuthenticationController from "./authentication/authentication.controller";
-import validateEnv from "./utils/validateEnv";
+import PlansController from "./plans/plans.controller";
+import UserController from "./users/user.controller";
 
 
 validateEnv();
 
 const app = new App(
     [
-        new AuthenticationController()
+        new AuthenticationController(),
+        new UserController(),
+        new PlansController()
     ]
 );
 
