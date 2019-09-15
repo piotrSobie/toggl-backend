@@ -1,13 +1,14 @@
 import * as express from 'express';
 import * as jwt_decode from 'jwt-decode';
-import User from "../users/user.model";
+import UserModel from "../users/user.model";
 import Controller from "../interfaces/controller.interface";
-import RequestWithUser from "../interfaces/RequestWithUser.interface";
-import WrongCredentialsException from "../exceptions/WrongCredentialsException";
-import HttpException from '../exceptions/HttpException';
-import InternalServerException from "../exceptions/InternalServerException";
+import RequestWithUser from "../interfaces/request-with-user.interface";
+import WrongCredentialsException from "../exceptions/wrong-credentials.exception";
+import HttpException from '../exceptions/http.exception';
+import InternalServerException from "../exceptions/internal-server.exception";
 import authMiddleware from "../middleware/auth.middleware";
-import WrongAuthenticationTokenException from "../exceptions/WrongAuthenticationTokenException";
+import WrongAuthenticationTokenException from "../exceptions/wrong-authentication-token.exception";
+import UserInterface from "../users/user.interface";
 
 class AuthenticationController implements Controller {
     public path = '/auth';
@@ -26,7 +27,7 @@ class AuthenticationController implements Controller {
     }
 
     private registerUser = async (request: express.Request, response: express.Response, next: express.NextFunction) => {
-        const user = new User(request.body);
+        const user: UserInterface = new UserModel(request.body);
 
         try {
             await user.save();
@@ -40,7 +41,7 @@ class AuthenticationController implements Controller {
 
     private loggingIn = async (request: express.Request, response: express.Response, next: express.NextFunction) => {
         try {
-            const user = await User.findByCredentials(request.body.email, request.body.password);
+            const user: UserInterface = await UserModel.findByCredentials(request.body.email, request.body.password);
             const tokenData = await user.generateAuthToken();
             await user.generateRefreshToken();
             response.send({ user, tokenData });
@@ -77,7 +78,7 @@ class AuthenticationController implements Controller {
         const decodedToken = jwt_decode(authToken);
 
         //auth token is expired
-        const user = await User.findOne({ _id: decodedToken._id});
+        const user = await UserModel.findOne({ _id: decodedToken._id});
         if (!user) {
             next(new WrongAuthenticationTokenException());
         }

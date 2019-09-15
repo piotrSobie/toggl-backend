@@ -1,10 +1,10 @@
 import * as express from 'express';
 import Controller from "../interfaces/controller.interface";
-import RequestWithUser from "../interfaces/RequestWithUser.interface";
+import RequestWithUser from "../interfaces/request-with-user.interface";
 import authMiddleware from "../middleware/auth.middleware";
-import InternalServerException from "../exceptions/InternalServerException";
-import InvalidUpdatesException from "../exceptions/InvalidUpdatesException";
-import HttpException from "../exceptions/HttpException";
+import InternalServerException from "../exceptions/internal-server.exception";
+import InvalidUpdatesException from "../exceptions/invalid-updates.exception";
+import HttpException from "../exceptions/http.exception";
 
 class UserController implements Controller{
     public path = '/user';

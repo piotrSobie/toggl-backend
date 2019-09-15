@@ -5,6 +5,11 @@ interface UserInterface {
     location: string;
     tokens: { token: string }[];
     refreshToken: string;
+    usersPlans?;
+
+    save();
+    generateAuthToken();
+    generateRefreshToken();
 }
 
 export default UserInterface;

@@ -4,11 +4,11 @@ import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken'
 import Plan from '../plans/plan.model'
 import UserInterface from './user.interface';
-import DataStoredInToken from "../interfaces/DataStoredInToken";
-import TokenData from "../interfaces/TokenData";
-import WrongCredentialsException from "../exceptions/WrongCredentialsException";
-import InvalidEmailException from '../exceptions/InvalidEmailException';
-import WeakPasswordException from "../exceptions/WeakPasswordException";
+import DataStoredInTokenInterface from "../interfaces/data-stored-in-token.interface";
+import TokenDataInterface from "../interfaces/token-data.interface";
+import WrongCredentialsException from "../exceptions/wrong-credentials.exception";
+import InvalidEmailException from '../exceptions/invalid-email.exception';
+import WeakPasswordException from "../exceptions/weak-password.exception";
 
 const userSchema = new mongoose.Schema({
     email: {
@@ -64,15 +64,15 @@ userSchema.methods.toJSON = function() {
 
 userSchema.methods.generateAuthToken = async function() {
     const user = this;
-    const expiresIn = 15;
+    const expiresIn = 10 * 60 * 60;
     const secret = process.env.JWT_SECRET;
-    const dataStoredInToken: DataStoredInToken = {
+    const dataStoredInToken: DataStoredInTokenInterface = {
         _id: user._id
     };
     const token = jwt.sign(dataStoredInToken, secret, { expiresIn });
     user.tokens = user.tokens.concat({ token });
     await user.save();
-    const tokenData: TokenData = {
+    const tokenData: TokenDataInterface = {
         expiresIn,
         token: token
     };
@@ -83,7 +83,7 @@ userSchema.methods.generateRefreshToken = async function() {
     const user = this;
     const expiresIn = "10h";
     const secret = process.env.JWT_SECRET;
-    const dataStoredInToken: DataStoredInToken = {
+    const dataStoredInToken: DataStoredInTokenInterface = {
         _id: user._id
     };
     const refreshToken = jwt.sign(dataStoredInToken, secret, { expiresIn });
@@ -92,7 +92,7 @@ userSchema.methods.generateRefreshToken = async function() {
 };
 
 userSchema.statics.findByCredentials = async (email, password) => {
-    const user = await User.findOne({ email });
+    const user = await UserModel.findOne({ email });
     if (!user) {
         throw new WrongCredentialsException();
     }
@@ -121,6 +121,6 @@ userSchema.pre('remove', async function deletePlansBeforeDeletingUser(next) {
    next();
 });
 
-const User = mongoose.model<UserInterface & mongoose.Document>('User', userSchema);
+const UserModel = mongoose.model<UserInterface & mongoose.Document>('User', userSchema);
 
-export default User;
+export default UserModel;

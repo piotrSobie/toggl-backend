@@ -1,4 +1,4 @@
-import HttpException from "./HttpException";
+import HttpException from "./http.exception";
 
 class InvalidPlanValuesException extends HttpException {
     constructor() {

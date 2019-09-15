@@ -2,10 +2,10 @@ import * as express from 'express';
 import * as jwt from 'jsonwebtoken';
 import * as jwt_decode from 'jwt-decode';
 import User from '../users/user.model';
-import DataStoredInToken from "../interfaces/DataStoredInToken";
-import RequestWithUser from '../interfaces/RequestWithUser.interface';
-import WrongAuthenticationTokenException from "../exceptions/WrongAuthenticationTokenException";
-import InternalServerException from "../exceptions/InternalServerException";
+import DataStoredInTokenInterface from "../interfaces/data-stored-in-token.interface";
+import RequestWithUser from '../interfaces/request-with-user.interface';
+import WrongAuthenticationTokenException from "../exceptions/wrong-authentication-token.exception";
+import InternalServerException from "../exceptions/internal-server.exception";
 
 
 async function authMiddleware(request: RequestWithUser, response: express.Response, next: express.NextFunction) {
@@ -53,7 +53,7 @@ async function authMiddleware(request: RequestWithUser, response: express.Respon
 
     // try {
     //     const token = request.header('Authorization').replace('Bearer ', '');
-    //     const verificationResponse = jwt.verify(token, process.env.JWT_SECRET) as DataStoredInToken;
+    //     const verificationResponse = jwt.verify(token, process.env.JWT_SECRET) as DataStoredInTokenInterface;
     //     const user = await User.findOne({ _id: verificationResponse._id, 'tokens.token': token });
     //
     //     if (!user) {

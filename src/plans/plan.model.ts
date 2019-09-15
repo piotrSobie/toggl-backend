@@ -26,12 +26,12 @@ const planSchema = new mongoose.Schema({
         type: String
     },
     owner: {
-        type: mongoose.Schema.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref: 'User'
     }
 });
 
-const Plan = mongoose.model<PlanInterface & mongoose.Document>('Plan', planSchema);
+const PlanModel = mongoose.model<PlanInterface & mongoose.Document>('Plan', planSchema);
 
-export default Plan;
+export default PlanModel;

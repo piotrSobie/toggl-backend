@@ -1,11 +1,12 @@
 import * as express from 'express';
 import Controller from "../interfaces/controller.interface";
-import Plan from '../plans/plan.model';
+import PlanModel from './plan.model';
+import PlanInterface from './plan.interface';
 import authMiddleware from "../middleware/auth.middleware";
-import RequestWithUser from '../interfaces/RequestWithUser.interface';
-import InvalidPlanValuesException from "../exceptions/InvalidPlanValuesException";
-import InternalServerException from "../exceptions/InternalServerException";
-import InvalidUpdatesException from "../exceptions/InvalidUpdatesException";
+import RequestWithUser from '../interfaces/request-with-user.interface';
+import InvalidPlanValuesException from "../exceptions/invalid-plan-values.exception";
+import InternalServerException from "../exceptions/internal-server.exception";
+import InvalidUpdatesException from "../exceptions/invalid-updates.exception";
 
 class PlansController implements Controller{
     public path = '/plans';
@@ -24,7 +25,7 @@ class PlansController implements Controller{
     }
 
     private createPlan = async (request: RequestWithUser, response: express.Response, next: express.NextFunction) => {
-        const plan = new Plan({
+        const plan: PlanInterface = new PlanModel({
             ...request.body,
             owner: request.user._id
         });
@@ -49,7 +50,7 @@ class PlansController implements Controller{
     private getPlanById = async (request: RequestWithUser, response: express.Response, next: express.NextFunction) => {
         const _id = request.params.id;
         try {
-            const plan = await Plan.findOne({ _id, owner: request.user._id });
+            const plan: PlanInterface = await PlanModel.findOne({ _id, owner: request.user._id });
 
             if (!plan) {
                 return response.status(404).send();
@@ -71,7 +72,7 @@ class PlansController implements Controller{
             next(new InvalidUpdatesException());
         } else {
             try {
-                const plan = await Plan.findOne({ _id: request.params.id, owner: request.user._id });
+                const plan: PlanInterface = await PlanModel.findOne({ _id: request.params.id, owner: request.user._id });
 
                 if (!plan) {
                     return response.status(404).send();
@@ -88,7 +89,7 @@ class PlansController implements Controller{
 
     private deletePlan = async (request: RequestWithUser, response: express.Response, next: express.NextFunction) => {
         try {
-            const plan = await Plan.findOneAndDelete({ _id: request.params.id, owner: request.user._id });
+            const plan: PlanInterface = await PlanModel.findOneAndDelete({ _id: request.params.id, owner: request.user._id });
 
             if (!plan) {
                 return response.status(404).send();
